@@ -1,0 +1,207 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #ede9fe;
+  --color-surface: #ffffff;
+  --color-card: #fde047;
+  --color-ink: #111111;
+  --color-muted: #52525b;
+  --color-line: #e4e4e7;
+  --color-primary: #2563eb;
+  --color-primary-ink: #ffffff;
+  --color-danger: #dc2626;
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Dark mode: black-first surfaces (toggle adds class `dark` on <html>) */
+html.dark {
+  color-scheme: dark;
+  --color-bg: #000000;
+  --color-surface: #0a0a0a;
+  --color-card: #0f0f0f;
+  --color-ink: #f5f5f5;
+  --color-muted: #a1a1aa;
+  --color-line: #27272a;
+  --color-primary: #60a5fa;
+  --color-primary-ink: #000000;
+  --color-danger: #f87171;
+}
+
+html.dark .page-public-bg {
+  background: #000000;
+}
+
+html.dark .public-particles::before {
+  opacity: 0.22;
+}
+
+html.dark .public-particles::after {
+  opacity: 0.18;
+}
+
+html.dark .card-glow:hover {
+  box-shadow: 0 0 36px 10px rgba(255, 255, 255, 0.06), 0 25px 50px -12px rgba(0, 0, 0, 0.85) !important;
+}
+
+html.dark .cta-glow:hover {
+  box-shadow: 0 0 20px 4px rgba(255, 255, 255, 0.1), 0 4px 16px rgba(0, 0, 0, 0.55);
+}
+
+/* ── Keyframes (global scope so all layers can reference them) ── */
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes photo-zoom {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Card sweeps into view like someone handing it face-up: edge-on → slight overshoot → settle */
+@keyframes card-hand-in {
+  0% {
+    opacity: 0;
+    transform: rotateY(-86deg) rotateX(12deg) translateY(40px) scale(0.93);
+  }
+  58% {
+    opacity: 1;
+    transform: rotateY(4deg) rotateX(-3deg) translateY(-4px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: rotateY(0deg) rotateX(0deg) translateY(0) scale(1);
+  }
+}
+
+@keyframes particles-drift-dots {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-56px, -80px); }
+}
+
+@keyframes particles-drift-lines {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  100% { transform: translate(72px, 48px) rotate(1deg); }
+}
+
+/* ── Base ── */
+@layer base {
+  html {
+    @apply antialiased;
+    font-family: var(--font-sans);
+  }
+
+  body {
+    @apply bg-bg text-ink min-h-dvh;
+  }
+
+  .page-public-bg {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(135deg, #3730a3 0%, #6d28d9 55%, #7c3aed 100%);
+  }
+
+  /* Subtle dots + faint lines, behind card (sibling uses z-10) */
+  .public-particles {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .public-particles::before {
+    content: "";
+    position: absolute;
+    inset: -25%;
+    background-image:
+      radial-gradient(circle, rgba(255, 255, 255, 0.22) 1px, transparent 1.5px),
+      radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1.5px);
+    background-size: 52px 52px, 88px 88px;
+    background-position: 0 0, 44px 22px;
+    animation: particles-drift-dots 90s linear infinite;
+  }
+
+  .public-particles::after {
+    content: "";
+    position: absolute;
+    inset: -25%;
+    opacity: 0.45;
+    background-image: repeating-linear-gradient(
+      108deg,
+      transparent 0,
+      transparent 44px,
+      rgba(255, 255, 255, 0.07) 44px,
+      rgba(255, 255, 255, 0.07) 45px
+    );
+    animation: particles-drift-lines 140s linear infinite reverse;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ── Utilities ── */
+@layer utilities {
+  /* Stagger helpers */
+  .fade-up  { animation: card-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .photo-zoom { animation: photo-zoom 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .card-enter { animation: card-enter 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.3s; }
+  .delay-4 { animation-delay: 0.45s; }
+  .delay-5 { animation-delay: 0.6s; }
+
+  /* Card flip */
+  .card-perspective { perspective: 1100px; }
+
+  .card-flip-enter {
+    transform-style: preserve-3d;
+    transform-origin: 50% 100%;
+    animation: card-hand-in 0.95s cubic-bezier(0.33, 1, 0.32, 1) both;
+  }
+
+  .card-inner {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .card-inner.is-flipped { transform: rotateY(180deg); }
+
+  .card-face {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .card-back-face {
+    position: absolute;
+    inset: 0;
+    transform: rotateY(180deg);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  /* Glow effects */
+  .cta-glow {
+    transition: box-shadow 0.2s ease, background-color 0.2s ease, transform 0.1s ease;
+  }
+
+  .cta-glow:hover {
+    box-shadow: 0 0 18px 4px rgba(255, 255, 255, 0.45), 0 4px 16px rgba(109, 40, 217, 0.25);
+  }
+
+  .card-glow { transition: box-shadow 0.3s ease; }
+
+  .card-glow:hover {
+    box-shadow: 0 0 40px 12px rgba(30, 10, 60, 0.6), 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+  }
+}
